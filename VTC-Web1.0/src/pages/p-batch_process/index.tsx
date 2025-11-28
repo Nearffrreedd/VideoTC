@@ -100,7 +100,7 @@ const BatchProcessPage: React.FC = () => {
   };
 
   // 处理单个链接
-  const processSingleLink = async (link: string, index: number, total: number): Promise<BatchResult> => {
+  const processSingleLink = async (link: string, index: number, _total: number): Promise<BatchResult> => {
     return new Promise((resolve) => {
       // 模拟处理延迟（3-5秒）
       setTimeout(() => {
@@ -128,7 +128,7 @@ const BatchProcessPage: React.FC = () => {
   };
 
   // 批量处理主函数
-  const startBatchProcessing = async (links: string[], format: string) => {
+  const startBatchProcessing = async (links: string[], _format: string) => {
     setIsProcessing(true);
     setBatchResults([]);
     setShowProgressSection(true);
