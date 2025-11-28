@@ -18,6 +18,27 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            whoami
-            pwd
-            echo "✅ 部署成功！代码已拉取。"
+            set -e  # 遇错立即退出
+            cd /home/ubuntu/videotc
+
+            echo "🔄 拉取最新代码..."
+            git reset --hard
+            git pull origin main
+
+            echo "📦 安装依赖（后端）..."
+            cd VTC-Web1.0
+            npm install --production
+
+            echo "🎨 构建前端（如果需要）..."
+            cd ../VTC-Web1.0-UI
+            npm install
+            npm run build  # 假设 build 输出到 dist/ 或 build/
+
+            # 将前端 build 结果复制到后端 public 目录（根据实际路径调整）
+            cp -r dist/* ../VTC-Web1.0/public/ 2>/dev/null || echo "⚠️ 未找到前端 dist，跳过复制"
+
+            echo "🔁 重启服务..."
+            cd ../VTC-Web1.0
+            pm2 restart app.js || pm2 start app.js --name "videotc"
+
+            echo "✅ 部署完成！服务已重启。"
