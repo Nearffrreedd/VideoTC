@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批量处理 - 链文</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        tertiary: '#06b6d4',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        info: '#3b82f6',
+                        'text-primary': '#1f2937',
+                        'text-secondary': '#6b7280',
+                        'bg-primary': '#f8fafc',
+                        'bg-secondary': '#f1f5f9',
+                        'border-primary': '#e2e8f0',
+                        'border-secondary': '#cbd5e1'
+                    },
+                    backgroundImage: {
+                        'gradient-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        'gradient-secondary': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        'gradient-tertiary': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        'gradient-success': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                        'gradient-card': 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+                        'gradient-bg': 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)'
+                    },
+                    boxShadow: {
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(102, 126, 234, 0.3)',
+                        'glow-hover': '0 0 30px rgba(102, 126, 234, 0.5)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-collapsed {
+            width: 56px;
+        }
+        
+        .sidebar-expanded {
+            width: 240px;
+        }
+        
+        .main-content-expanded {
+            margin-left: 240px;
+        }
+        
+        .main-content-collapsed {
+            margin-left: 56px;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .input-focus:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .card-gradient {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        
+        .nav-item-active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-right: 3px solid #667eea;
+        }
+        
+        .nav-item-hover:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+        
+        .feature-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+        }
+        
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradient 3s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+        }
+
+        .batch-item {
+            transition: all 0.3s ease;
+        }
+
+        .batch-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gradient-bg min-h-screen">
+    <!-- 顶部导航栏 -->
+    <header id="top-navbar" class="fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-gray-200/50 z-50">
+        <div class="flex items-center justify-between h-full px-4">
+            <!-- 左侧：Logo和菜单切换 -->
+            <div id="navbar-left" class="flex items-center space-x-4">
+                <button id="sidebar-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-bars text-gray-600"></i>
+                </button>
+                <div id="logo-section" class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-link text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-bold gradient-text">链文</h1>
+                </div>
+            </div>
+            
+            <!-- 中间：搜索框（可选） -->
+            <div id="navbar-center" class="hidden md:flex flex-1 max-w-md mx-8">
+                <div class="relative w-full">
+                    <input type="text" id="global-search" placeholder="搜索历史记录..." 
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg input-focus">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            
+            <!-- 右侧：用户操作 -->
+            <div id="navbar-right" class="flex items-center space-x-4">
+                <button id="notification-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
+                    <i class="fas fa-bell text-gray-600"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-danger rounded-full"></span>
+                </button>
+                <div id="user-menu" class="flex items-center space-x-3">
+                    <img src="https://s.coze.cn/image/GzPpBThbXX8/" 
+                         alt="用户头像" class="w-8 h-8 rounded-full border-2 border-primary/20">
+                    <span class="hidden md:block text-sm font-medium text-gray-700">张小明</span>
+                    <button id="user-dropdown" class="p-1 rounded hover:bg-gray-100">
+                        <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 左侧菜单 -->
+    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 sidebar-expanded bg-white/90 backdrop-blur-md border-r border-gray-200/50 z-40 transition-all duration-300">
+        <nav id="sidebar-nav" class="p-4 space-y-2">
+            <a href="P-HOME.html" id="nav-home" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-home text-lg w-5"></i>
+                <span class="sidebar-text">首页</span>
+            </a>
+            <a href="#" id="nav-batch" class="nav-item-active flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 font-medium transition-all">
+                <i class="fas fa-layer-group text-lg w-5"></i>
+                <span class="sidebar-text">批量处理</span>
+            </a>
+            <a href="P-HISTORY.html" id="nav-history" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-history text-lg w-5"></i>
+                <span class="sidebar-text">历史记录</span>
+            </a>
+            <a href="P-HELP.html" id="nav-help" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-question-circle text-lg w-5"></i>
+                <span class="sidebar-text">帮助教程</span>
+            </a>
+        </nav>
+        
+        <!-- 底部用户信息 -->
+        <div id="sidebar-footer" class="absolute bottom-4 left-4 right-4">
+            <div class="sidebar-text p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
+                <div class="text-xs text-gray-500 mb-1">今日已提取</div>
+                <div class="text-lg font-bold gradient-text">12 次</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="main-content-expanded pt-16 min-h-screen transition-all duration-300">
+        <div class="p-6 max-w-7xl mx-auto">
+            <!-- 页面头部 -->
+            <div id="page-header" class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-2">批量处理</h2>
+                        <nav id="breadcrumb" class="text-white/80 text-sm">
+                            <a href="P-HOME.html" class="hover:text-white transition-colors">首页</a>
+                            <span class="mx-2">></span>
+                            <span>批量处理</span>
+                        </nav>
+                    </div>
+                    <div class="text-right text-white/80">
+                        <div class="text-sm">今日批量处理</div>
+                        <div class="text-2xl font-bold text-white">3 次</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 批量链接输入区 -->
+            <section id="batch-input-section" class="card-gradient p-8 rounded-3xl shadow-card mb-8">
+                <div class="text-center mb-8">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">批量提取文案</h3>
+                    <p class="text-gray-600">每行输入一个视频链接，支持Bilibili、YouTube、抖音等平台</p>
+                </div>
+                
+                <form id="batch-form" class="space-y-6">
+                    <!-- 批量链接输入 -->
+                    <div id="batch-links-input" class="space-y-2">
+                        <label for="batch-links" class="block text-sm font-medium text-gray-700">视频链接列表 *</label>
+                        <div class="relative">
+                            <textarea id="batch-links" name="batch-links" rows="8"
+                                    placeholder="请每行输入一个视频链接，例如：
+https://www.bilibili.com/video/BV1234567890
+https://www.youtube.com/watch?v=abcdefghijk
+https://v.douyin.com/abc123/"
+                                    class="w-full px-4 py-4 pr-12 border border-gray-300 rounded-xl input-focus text-base resize-none"
+                                    required></textarea>
+                            <button type="button" id="paste-batch-btn" class="absolute right-3 bottom-3 p-2 text-gray-400 hover:text-primary transition-colors">
+                                <i class="fas fa-paste"></i>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center text-sm text-gray-500">
+                            <span>支持Bilibili、YouTube、抖音、TikTok等平台</span>
+                            <span id="link-count">0 个链接</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 格式选择 -->
+                    <div id="format-section" class="space-y-2">
+                        <label for="batch-format-select" class="block text-sm font-medium text-gray-700">输出格式</label>
+                        <select id="batch-format-select" name="format" class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus">
+                            <option value="markdown">Markdown格式</option>
+                            <option value="timestamp">带时间戳文本</option>
+                            <option value="plain">纯文本</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 批量提取按钮 -->
+                    <div id="batch-action-buttons" class="flex flex-col sm:flex-row gap-4">
+                        <button type="submit" id="batch-extract-btn" class="btn-gradient flex-1 py-4 px-6 text-white font-semibold rounded-xl shadow-glow">
+                            <i class="fas fa-magic mr-2"></i>
+                            开始批量提取
+                        </button>
+                        <button type="button" id="clear-btn" class="flex-1 py-4 px-6 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all">
+                            <i class="fas fa-eraser mr-2"></i>
+                            清空输入
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- 批量提取进度/结果预览区 -->
+            <section id="batch-progress-section" class="card-gradient p-6 rounded-3xl shadow-card hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-800">提取进度</h3>
+                    <button type="button" id="cancel-batch-btn" class="px-4 py-2 text-danger border border-danger rounded-lg hover:bg-danger hover:text-white transition-all">
+                        <i class="fas fa-stop mr-2"></i>
+                        取消
+                    </button>
+                </div>
+                
+                <!-- 总体进度 -->
+                <div id="overall-progress" class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-medium text-gray-700">总体进度</span>
+                        <span id="progress-text" class="text-sm text-gray-600">0 / 0</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-3">
+                        <div id="progress-bar" class="progress-bar h-3 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <!-- 批量处理结果列表 -->
+                <div id="batch-results" class="space-y-3">
+                    <!-- 动态生成的处理结果项 -->
+                </div>
+                
+                <!-- 完成后操作按钮 -->
+                <div id="batch-complete-actions" class="flex gap-4 mt-6 hidden">
+                    <button type="button" id="view-all-results-btn" class="btn-gradient flex-1 py-3 px-6 text-white font-semibold rounded-xl">
+                        <i class="fas fa-eye mr-2"></i>
+                        查看所有结果
+                    </button>
+                    <button type="button" id="download-all-btn" class="flex-1 py-3 px-6 border-2 border-primary text-primary font-semibold rounded-xl hover:bg-primary hover:text-white transition-all">
+                        <i class="fas fa-download mr-2"></i>
+                        批量下载
+                    </button>
+                </div>
+            </section>
+
+            <!-- 使用提示 -->
+            <section id="usage-tips" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="feature-card p-6 rounded-2xl shadow-card">
+                    <div class="w-12 h-12 bg-gradient-tertiary rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-list text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">格式要求</h3>
+                    <p class="text-gray-600 text-sm">每行输入一个视频链接，系统将自动识别平台并进行处理</p>
+                </div>
+                <div class="feature-card p-6 rounded-2xl shadow-card">
+                    <div class="w-12 h-12 bg-gradient-secondary rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-clock text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">处理时间</h3>
+                    <p class="text-gray-600 text-sm">每个视频处理时间约3-10秒，批量处理将按顺序进行</p>
+                </div>
+                <div class="feature-card p-6 rounded-2xl shadow-card">
+                    <div class="w-12 h-12 bg-gradient-success rounded-xl flex items-center justify-center mb-4">
+                        <i class="fas fa-shield-alt text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">安全保障</h3>
+                    <p class="text-gray-600 text-sm">您的视频链接和提取内容仅用于个人使用，我们严格保护您的隐私</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 侧边栏切换功能
+            const sidebarToggle = document.querySelector('#sidebar-toggle');
+            const sidebar = document.querySelector('#sidebar');
+            const mainContent = document.querySelector('#main-content');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            
+            let sidebarCollapsed = false;
+            
+            sidebarToggle.addEventListener('click', () => {
+                sidebarCollapsed = !sidebarCollapsed;
+                
+                if (sidebarCollapsed) {
+                    sidebar.classList.remove('sidebar-expanded');
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.remove('main-content-expanded');
+                    mainContent.classList.add('main-content-collapsed');
+                    sidebarTexts.forEach(text => text.style.display = 'none');
+                } else {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.add('sidebar-expanded');
+                    mainContent.classList.remove('main-content-collapsed');
+                    mainContent.classList.add('main-content-expanded');
+                    sidebarTexts.forEach(text => text.style.display = 'block');
+                }
+            });
+
+            // 批量链接输入处理
+            const batchLinksTextarea = document.querySelector('#batch-links');
+            const linkCountSpan = document.querySelector('#link-count');
+            
+            function updateLinkCount() {
+                const links = batchLinksTextarea.value.trim().split('\n').filter(link => link.trim());
+                linkCountSpan.textContent = `${links.length} 个链接`;
+            }
+            
+            batchLinksTextarea.addEventListener('input', updateLinkCount);
+
+            // 批量粘贴功能
+            const pasteBatchBtn = document.querySelector('#paste-batch-btn');
+            
+            pasteBatchBtn.addEventListener('click', async () => {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    const lines = text.split('\n').filter(line => line.trim() && line.includes('http'));
+                    if (lines.length > 0) {
+                        const currentValue = batchLinksTextarea.value.trim();
+                        const newValue = currentValue + (currentValue ? '\n' : '') + lines.join('\n');
+                        batchLinksTextarea.value = newValue;
+                        updateLinkCount();
+                    } else {
+                        alert('剪贴板中没有有效的链接');
+                    }
+                } catch (err) {
+                    alert('无法访问剪贴板，请手动粘贴');
+                }
+            });
+
+            // 清空输入
+            const clearBtn = document.querySelector('#clear-btn');
+            clearBtn.addEventListener('click', () => {
+                batchLinksTextarea.value = '';
+                updateLinkCount();
+            });
+
+            // 批量提取表单提交
+            const batchForm = document.querySelector('#batch-form');
+            const batchExtractBtn = document.querySelector('#batch-extract-btn');
+            const batchProgressSection = document.querySelector('#batch-progress-section');
+            const cancelBatchBtn = document.querySelector('#cancel-batch-btn');
+            
+            let isProcessing = false;
+            let batchResults = [];
+            
+            batchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const batchLinks = batchLinksTextarea.value.trim().split('\n').filter(link => link.trim());
+                const format = document.querySelector('#batch-format-select').value;
+                
+                if (batchLinks.length === 0) {
+                    alert('请至少输入一个视频链接');
+                    return;
+                }
+                
+                if (batchLinks.length > 20) {
+                    alert('每次批量处理最多支持20个链接');
+                    return;
+                }
+                
+                startBatchProcessing(batchLinks, format);
+            });
+
+            function startBatchProcessing(links, format) {
+                isProcessing = true;
+                batchResults = [];
+                
+                // 显示进度区域
+                batchProgressSection.classList.remove('hidden');
+                
+                // 禁用提取按钮
+                batchExtractBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>处理中...';
+                batchExtractBtn.disabled = true;
+                
+                // 初始化进度
+                updateOverallProgress(0, links.length);
+                renderBatchResults(links);
+                
+                // 模拟批量处理过程
+                processLinksSequentially(links, format, 0);
+            }
+
+            function processLinksSequentially(links, format, index) {
+                if (index >= links.length || !isProcessing) {
+                    if (isProcessing) {
+                        completeBatchProcessing();
+                    }
+                    return;
+                }
+                
+                const link = links[index];
+                const resultItem = document.querySelector(`#batch-item-${index}`);
+                
+                // 更新当前项状态为处理中
+                updateBatchItemStatus(index, 'processing');
+                
+                // 模拟处理延迟（3-5秒）
+                setTimeout(() => {
+                    // 模拟90%成功率
+                    const success = Math.random() > 0.1;
+                    
+                    if (success) {
+                        batchResults.push({
+                            url: link,
+                            platform: getPlatformFromUrl(link),
+                            status: 'success',
+                            title: `视频标题 ${index + 1}`,
+                            id: `batch_result_${Date.now()}_${index}`
+                        });
+                        updateBatchItemStatus(index, 'success');
+                    } else {
+                        batchResults.push({
+                            url: link,
+                            platform: getPlatformFromUrl(link),
+                            status: 'failed',
+                            error: '提取失败，请检查链接是否有效'
+                        });
+                        updateBatchItemStatus(index, 'failed');
+                    }
+                    
+                    // 更新总体进度
+                    updateOverallProgress(index + 1, links.length);
+                    
+                    // 处理下一个链接
+                    processLinksSequentially(links, format, index + 1);
+                }, 3000 + Math.random() * 2000);
+            }
+
+            function getPlatformFromUrl(url) {
+                if (url.includes('bilibili')) return 'Bilibili';
+                if (url.includes('youtube')) return 'YouTube';
+                if (url.includes('douyin') || url.includes('tiktok')) return '抖音/TikTok';
+                return '未知平台';
+            }
+
+            function updateOverallProgress(current, total) {
+                const progress = (current / total) * 100;
+                document.querySelector('#progress-bar').style.width = `${progress}%`;
+                document.querySelector('#progress-text').textContent = `${current} / ${total}`;
+            }
+
+            function renderBatchResults(links) {
+                const resultsContainer = document.querySelector('#batch-results');
+                resultsContainer.innerHTML = '';
+                
+                links.forEach((link, index) => {
+                    const platform = getPlatformFromUrl(link);
+                    const batchItem = document.createElement('div');
+                    batchItem.id = `batch-item-${index}`;
+                    batchItem.className = 'batch-item p-4 border border-gray-200 rounded-lg';
+                    batchItem.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-globe text-gray-500 text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-sm font-medium text-gray-800 truncate" title="${link}">${link}</div>
+                                        <div class="text-xs text-gray-500">${platform}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div id="item-status-${index}" class="text-sm text-gray-500">等待中</div>
+                                <div id="item-action-${index}" class="hidden">
+                                    <button class="view-result-btn px-3 py-1 text-primary text-sm border border-primary rounded hover:bg-primary hover:text-white transition-all" data-index="${index}">
+                                        查看
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    resultsContainer.appendChild(batchItem);
+                });
+            }
+
+            function updateBatchItemStatus(index, status) {
+                const statusElement = document.querySelector(`#item-status-${index}`);
+                const actionElement = document.querySelector(`#item-action-${index}`);
+                const itemElement = document.querySelector(`#batch-item-${index}`);
+                
+                switch (status) {
+                    case 'processing':
+                        statusElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>处理中';
+                        statusElement.className = 'text-sm text-warning';
+                        actionElement.classList.add('hidden');
+                        break;
+                    case 'success':
+                        statusElement.innerHTML = '<i class="fas fa-check-circle mr-1"></i>成功';
+                        statusElement.className = 'text-sm text-success';
+                        actionElement.classList.remove('hidden');
+                        itemElement.classList.add('border-success');
+                        break;
+                    case 'failed':
+                        statusElement.innerHTML = '<i class="fas fa-times-circle mr-1"></i>失败';
+                        statusElement.className = 'text-sm text-danger';
+                        actionElement.classList.add('hidden');
+                        itemElement.classList.add('border-danger');
+                        break;
+                }
+            }
+
+            function completeBatchProcessing() {
+                isProcessing = false;
+                
+                // 恢复按钮状态
+                batchExtractBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>开始批量提取';
+                batchExtractBtn.disabled = false;
+                
+                // 显示完成操作按钮
+                document.querySelector('#batch-complete-actions').classList.remove('hidden');
+                
+                // 绑定查看结果按钮事件
+                document.querySelectorAll('.view-result-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.dataset.index);
+                        const result = batchResults[index];
+                        if (result && result.status === 'success') {
+                            window.location.href = `P-EXTRACT_RESULT.html?batchId=${result.id}&format=${document.querySelector('#batch-format-select').value}`;
+                        }
+                    });
+                });
+            }
+
+            // 取消批量处理
+            cancelBatchBtn.addEventListener('click', () => {
+                if (isProcessing) {
+                    isProcessing = false;
+                    alert('批量处理已取消');
+                    
+                    // 恢复按钮状态
+                    batchExtractBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>开始批量提取';
+                    batchExtractBtn.disabled = false;
+                }
+            });
+
+            // 查看所有结果
+            document.querySelector('#view-all-results-btn').addEventListener('click', () => {
+                const batchId = `batch_${Date.now()}`;
+                const format = document.querySelector('#batch-format-select').value;
+                window.location.href = `P-EXTRACT_RESULT.html?batchId=${batchId}&format=${format}&batchResults=${encodeURIComponent(JSON.stringify(batchResults))}`;
+            });
+
+            // 批量下载
+            document.querySelector('#download-all-btn').addEventListener('click', () => {
+                alert('批量下载功能开发中...');
+            });
+
+            // 导航菜单点击事件
+            document.querySelector('#nav-home').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-HOME.html';
+            });
+
+            document.querySelector('#nav-batch').addEventListener('click', function(e) {
+                e.preventDefault();
+                // 已在批量处理页面，无需操作
+            });
+
+            document.querySelector('#nav-history').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-HISTORY.html';
+            });
+
+            document.querySelector('#nav-help').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'P-HELP.html';
+            });
+
+            // 响应式处理
+            function handleResize() {
+                if (window.innerWidth < 768) {
+                    sidebar.style.transform = 'translateX(-100%)';
+                    mainContent.classList.remove('main-content-expanded', 'main-content-collapsed');
+                    mainContent.style.marginLeft = '0';
+                } else {
+                    sidebar.style.transform = 'translateX(0)';
+                    if (sidebarCollapsed) {
+                        mainContent.classList.add('main-content-collapsed');
+                    } else {
+                        mainContent.classList.add('main-content-expanded');
+                    }
+                }
+            }
+            
+            window.addEventListener('resize', handleResize);
+            handleResize(); // 初始化
+        });
+    </script>
+</body>
+</html>

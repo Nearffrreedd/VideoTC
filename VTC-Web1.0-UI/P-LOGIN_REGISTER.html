@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录注册 - 链文</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        tertiary: '#06b6d4',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        info: '#3b82f6',
+                        'text-primary': '#1f2937',
+                        'text-secondary': '#6b7280',
+                        'bg-primary': '#f8fafc',
+                        'bg-secondary': '#f1f5f9',
+                        'border-primary': '#e2e8f0',
+                        'border-secondary': '#cbd5e1'
+                    },
+                    backgroundImage: {
+                        'gradient-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        'gradient-secondary': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        'gradient-tertiary': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        'gradient-success': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                        'gradient-card': 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+                        'gradient-bg': 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)'
+                    },
+                    boxShadow: {
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(102, 126, 234, 0.3)',
+                        'glow-hover': '0 0 30px rgba(102, 126, 234, 0.5)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .input-focus:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .card-gradient {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        
+        .form-container {
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .error-message {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .tab-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .tab-inactive {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .tab-inactive:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gradient-bg min-h-screen flex items-center justify-center p-4">
+    <!-- 主容器 -->
+    <div id="main-container" class="w-full max-w-md">
+        <!-- Logo区域 -->
+        <div id="logo-section" class="text-center mb-8">
+            <div class="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-glow">
+                <i class="fas fa-link text-white text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold gradient-text mb-2">链文</h1>
+            <p class="text-white/80 text-sm">高效视频文案提取工具</p>
+        </div>
+        
+        <!-- 表单容器 -->
+        <div id="form-container" class="card-gradient rounded-3xl shadow-card p-8 form-container">
+            <!-- 标签页切换 -->
+            <div id="tab-section" class="flex mb-8 rounded-2xl overflow-hidden bg-gray-100">
+                <button id="login-tab" class="flex-1 py-3 px-4 text-center font-medium transition-all tab-active">
+                    <i class="fas fa-sign-in-alt mr-2"></i>登录
+                </button>
+                <button id="register-tab" class="flex-1 py-3 px-4 text-center font-medium transition-all tab-inactive">
+                    <i class="fas fa-user-plus mr-2"></i>注册
+                </button>
+            </div>
+            
+            <!-- 登录表单 -->
+            <form id="login-form" class="space-y-6">
+                <div id="login-content">
+                    <!-- 用户名/邮箱输入 -->
+                    <div class="space-y-2">
+                        <label for="login-username" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-user mr-2"></i>用户名/邮箱
+                        </label>
+                        <input type="text" id="login-username" name="username" 
+                               placeholder="请输入用户名或邮箱"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus text-gray-800"
+                               required>
+                        <div id="login-username-error" class="text-danger text-sm hidden">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span>请输入有效的用户名或邮箱</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 密码输入 -->
+                    <div class="space-y-2">
+                        <label for="login-password" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-lock mr-2"></i>密码
+                        </label>
+                        <div class="relative">
+                            <input type="password" id="login-password" name="password" 
+                                   placeholder="请输入密码"
+                                   class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl input-focus text-gray-800"
+                                   required>
+                            <button type="button" id="login-password-toggle" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div id="login-password-error" class="text-danger text-sm hidden">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span>密码不能为空</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 记住密码和忘记密码 -->
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="remember-me" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary">
+                            <span class="ml-2 text-sm text-gray-600">记住密码</span>
+                        </label>
+                        <button type="button" id="forgot-password-btn" class="text-sm text-primary hover:text-secondary transition-colors">
+                            忘记密码？
+                        </button>
+                    </div>
+                    
+                    <!-- 登录按钮 -->
+                    <button type="submit" id="login-submit" class="btn-gradient w-full py-3 px-6 text-white font-semibold rounded-xl shadow-glow">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        <span id="login-btn-text">立即登录</span>
+                    </button>
+                    
+                    <!-- 切换到注册 -->
+                    <div class="text-center">
+                        <span class="text-gray-600 text-sm">还没有账号？</span>
+                        <button type="button" id="switch-to-register" class="text-primary font-medium hover:text-secondary transition-colors ml-1">
+                            立即注册
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- 注册表单 -->
+            <form id="register-form" class="space-y-6 hidden">
+                <div id="register-content">
+                    <!-- 用户名输入 -->
+                    <div class="space-y-2">
+                        <label for="register-username" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-user mr-2"></i>用户名
+                        </label>
+                        <input type="text" id="register-username" name="username" 
+                               placeholder="请输入用户名（3-20个字符）"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus text-gray-800"
+                               required>
+                        <div id="register-username-error" class="text-danger text-sm hidden">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span>用户名长度应为3-20个字符</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 邮箱输入 -->
+                    <div class="space-y-2">
+                        <label for="register-email" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-envelope mr-2"></i>邮箱
+                        </label>
+                        <input type="email" id="register-email" name="email" 
+                               placeholder="请输入邮箱地址"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus text-gray-800"
+                               required>
+                        <div id="register-email-error" class="text-danger text-sm hidden">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span>请输入有效的邮箱地址</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 手机号输入 -->
+                    <div class="space-y-2">
+                        <label for="register-phone" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-mobile-alt mr-2"></i>手机号
+                        </label>
+                        <input type="tel" id="register-phone" name="phone" 
+                               placeholder="请输入手机号（可选）"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus text-gray-800">
+                        <div id="register-phone-error" class="text-danger text-sm hidden">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span>请输入有效的手机号</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 密码输入 -->
+                    <div class="space-y-2">
+                        <label for="register-password" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-lock mr-2"></i>密码
+                        </label>
+                        <div class="relative">
+                            <input type="password" id="register-password" name="password" 
+                                   placeholder="请输入密码（6-20个字符）"
+                                   class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl input-focus text-gray-800"
+                                   required>
+                            <button type="button" id="register-password-toggle" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div id="register-password-error" class="text-danger text-sm hidden">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span>密码长度应为6-20个字符</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 确认密码输入 -->
+                    <div class="space-y-2">
+                        <label for="register-confirm-password" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-lock mr-2"></i>确认密码
+                        </label>
+                        <div class="relative">
+                            <input type="password" id="register-confirm-password" name="confirm-password" 
+                                   placeholder="请再次输入密码"
+                                   class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl input-focus text-gray-800"
+                                   required>
+                            <button type="button" id="register-confirm-password-toggle" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div id="register-confirm-password-error" class="text-danger text-sm hidden">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span>两次输入的密码不一致</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 注册按钮 -->
+                    <button type="submit" id="register-submit" class="btn-gradient w-full py-3 px-6 text-white font-semibold rounded-xl shadow-glow">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        <span id="register-btn-text">立即注册</span>
+                    </button>
+                    
+                    <!-- 切换到登录 -->
+                    <div class="text-center">
+                        <span class="text-gray-600 text-sm">已有账号？</span>
+                        <button type="button" id="switch-to-login" class="text-primary font-medium hover:text-secondary transition-colors ml-1">
+                            立即登录
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- 忘记密码表单 -->
+            <form id="forgot-password-form" class="space-y-6 hidden">
+                <div id="forgot-password-content">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-gradient-tertiary rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-key text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-800 mb-2">重置密码</h3>
+                        <p class="text-gray-600 text-sm">请输入您的邮箱地址，我们将发送重置密码的链接</p>
+                    </div>
+                    
+                    <!-- 邮箱输入 -->
+                    <div class="space-y-2">
+                        <label for="forgot-email" class="block text-sm font-medium text-gray-700">
+                            <i class="fas fa-envelope mr-2"></i>邮箱地址
+                        </label>
+                        <input type="email" id="forgot-email" name="email" 
+                               placeholder="请输入注册时使用的邮箱"
+                               class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus text-gray-800"
+                               required>
+                        <div id="forgot-email-error" class="text-danger text-sm hidden">
+                            <i class="fas fa-exclamation-circle mr-1"></i>
+                            <span>请输入有效的邮箱地址</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="space-y-3">
+                        <button type="submit" id="forgot-password-submit" class="btn-gradient w-full py-3 px-6 text-white font-semibold rounded-xl shadow-glow">
+                            <i class="fas fa-paper-plane mr-2"></i>
+                            <span id="forgot-password-btn-text">发送重置链接</span>
+                        </button>
+                        <button type="button" id="back-to-login" class="w-full py-3 px-6 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all">
+                            <i class="fas fa-arrow-left mr-2"></i>返回登录
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- 底部链接 -->
+        <div id="footer-links" class="text-center mt-6 space-y-2">
+            <div class="flex justify-center space-x-6 text-sm">
+                <a href="P-HELP.html" class="text-white/80 hover:text-white transition-colors">使用教程</a>
+                <a href="P-HELP.html" class="text-white/80 hover:text-white transition-colors">常见问题</a>
+                <a href="#" class="text-white/80 hover:text-white transition-colors">隐私政策</a>
+            </div>
+            <p class="text-white/60 text-xs">© 2024 链文. 保留所有权利</p>
+        </div>
+    </div>
+    
+    <!-- 成功提示模态框 -->
+    <div id="success-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
+            <div class="w-16 h-16 bg-gradient-success rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-white text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">操作成功</h3>
+            <p id="success-message" class="text-gray-600 text-sm mb-6">您的操作已成功完成</p>
+            <button id="success-ok-btn" class="btn-gradient w-full py-3 px-6 text-white font-semibold rounded-xl">
+                确定
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 表单元素
+            const loginTab = document.querySelector('#login-tab');
+            const registerTab = document.querySelector('#register-tab');
+            const loginForm = document.querySelector('#login-form');
+            const registerForm = document.querySelector('#register-form');
+            const forgotPasswordForm = document.querySelector('#forgot-password-form');
+            
+            // 标签页切换功能
+            function switchToLogin() {
+                loginTab.classList.remove('tab-inactive');
+                loginTab.classList.add('tab-active');
+                registerTab.classList.remove('tab-active');
+                registerTab.classList.add('tab-inactive');
+                
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                forgotPasswordForm.classList.add('hidden');
+            }
+            
+            function switchToRegister() {
+                registerTab.classList.remove('tab-inactive');
+                registerTab.classList.add('tab-active');
+                loginTab.classList.remove('tab-active');
+                loginTab.classList.add('tab-inactive');
+                
+                registerForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                forgotPasswordForm.classList.add('hidden');
+            }
+            
+            function switchToForgotPassword() {
+                loginForm.classList.add('hidden');
+                registerForm.classList.add('hidden');
+                forgotPasswordForm.classList.remove('hidden');
+            }
+            
+            // 标签页点击事件
+            loginTab.addEventListener('click', switchToLogin);
+            registerTab.addEventListener('click', switchToRegister);
+            
+            // 切换链接点击事件
+            document.querySelector('#switch-to-register').addEventListener('click', switchToRegister);
+            document.querySelector('#switch-to-login').addEventListener('click', switchToLogin);
+            document.querySelector('#forgot-password-btn').addEventListener('click', switchToForgotPassword);
+            document.querySelector('#back-to-login').addEventListener('click', switchToLogin);
+            
+            // 密码显示/隐藏功能
+            function setupPasswordToggle(toggleId, inputId) {
+                const toggle = document.querySelector(toggleId);
+                const input = document.querySelector(inputId);
+                
+                toggle.addEventListener('click', function() {
+                    const icon = this.querySelector('i');
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            }
+            
+            setupPasswordToggle('#login-password-toggle', '#login-password');
+            setupPasswordToggle('#register-password-toggle', '#register-password');
+            setupPasswordToggle('#register-confirm-password-toggle', '#register-confirm-password');
+            
+            // 表单验证函数
+            function validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+            
+            function validatePhone(phone) {
+                if (!phone) return true; // 手机号可选
+                const phoneRegex = /^1[3-9]\d{9}$/;
+                return phoneRegex.test(phone);
+            }
+            
+            function showError(inputId, errorId, message) {
+                const input = document.querySelector(inputId);
+                const error = document.querySelector(errorId);
+                
+                input.classList.add('border-danger');
+                error.querySelector('span').textContent = message;
+                error.classList.remove('hidden');
+                error.classList.add('error-message');
+                
+                setTimeout(() => {
+                    error.classList.remove('error-message');
+                }, 500);
+            }
+            
+            function hideError(inputId, errorId) {
+                const input = document.querySelector(inputId);
+                const error = document.querySelector(errorId);
+                
+                input.classList.remove('border-danger');
+                error.classList.add('hidden');
+            }
+            
+            // 登录表单提交
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.querySelector('#login-username').value.trim();
+                const password = document.querySelector('#login-password').value;
+                
+                // 清除之前的错误
+                hideError('#login-username', '#login-username-error');
+                hideError('#login-password', '#login-password-error');
+                
+                let hasError = false;
+                
+                // 验证用户名/邮箱
+                if (!username) {
+                    showError('#login-username', '#login-username-error', '请输入用户名或邮箱');
+                    hasError = true;
+                } else if (!validateEmail(username) && !/^[a-zA-Z0-9_-]{3,20}$/.test(username)) {
+                    showError('#login-username', '#login-username-error', '请输入有效的用户名或邮箱');
+                    hasError = true;
+                }
+                
+                // 验证密码
+                if (!password) {
+                    showError('#login-password', '#login-password-error', '请输入密码');
+                    hasError = true;
+                }
+                
+                if (hasError) return;
+                
+                // 显示加载状态
+                const submitBtn = document.querySelector('#login-submit');
+                const btnText = document.querySelector('#login-btn-text');
+                submitBtn.disabled = true;
+                btnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>登录中...';
+                
+                // 模拟登录过程
+                setTimeout(() => {
+                    // 登录成功，跳转到首页
+                    window.location.href = 'P-HOME.html';
+                }, 2000);
+            });
+            
+            // 注册表单提交
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const username = document.querySelector('#register-username').value.trim();
+                const email = document.querySelector('#register-email').value.trim();
+                const phone = document.querySelector('#register-phone').value.trim();
+                const password = document.querySelector('#register-password').value;
+                const confirmPassword = document.querySelector('#register-confirm-password').value;
+                
+                // 清除之前的错误
+                hideError('#register-username', '#register-username-error');
+                hideError('#register-email', '#register-email-error');
+                hideError('#register-phone', '#register-phone-error');
+                hideError('#register-password', '#register-password-error');
+                hideError('#register-confirm-password', '#register-confirm-password-error');
+                
+                let hasError = false;
+                
+                // 验证用户名
+                if (!username) {
+                    showError('#register-username', '#register-username-error', '请输入用户名');
+                    hasError = true;
+                } else if (username.length < 3 || username.length > 20) {
+                    showError('#register-username', '#register-username-error', '用户名长度应为3-20个字符');
+                    hasError = true;
+                }
+                
+                // 验证邮箱
+                if (!email) {
+                    showError('#register-email', '#register-email-error', '请输入邮箱地址');
+                    hasError = true;
+                } else if (!validateEmail(email)) {
+                    showError('#register-email', '#register-email-error', '请输入有效的邮箱地址');
+                    hasError = true;
+                }
+                
+                // 验证手机号（可选）
+                if (phone && !validatePhone(phone)) {
+                    showError('#register-phone', '#register-phone-error', '请输入有效的手机号');
+                    hasError = true;
+                }
+                
+                // 验证密码
+                if (!password) {
+                    showError('#register-password', '#register-password-error', '请输入密码');
+                    hasError = true;
+                } else if (password.length < 6 || password.length > 20) {
+                    showError('#register-password', '#register-password-error', '密码长度应为6-20个字符');
+                    hasError = true;
+                }
+                
+                // 验证确认密码
+                if (!confirmPassword) {
+                    showError('#register-confirm-password', '#register-confirm-password-error', '请确认密码');
+                    hasError = true;
+                } else if (password !== confirmPassword) {
+                    showError('#register-confirm-password', '#register-confirm-password-error', '两次输入的密码不一致');
+                    hasError = true;
+                }
+                
+                if (hasError) return;
+                
+                // 显示加载状态
+                const submitBtn = document.querySelector('#register-submit');
+                const btnText = document.querySelector('#register-btn-text');
+                submitBtn.disabled = true;
+                btnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>注册中...';
+                
+                // 模拟注册过程
+                setTimeout(() => {
+                    // 注册成功，跳转到首页
+                    window.location.href = 'P-HOME.html';
+                }, 2000);
+            });
+            
+            // 忘记密码表单提交
+            forgotPasswordForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.querySelector('#forgot-email').value.trim();
+                
+                // 清除之前的错误
+                hideError('#forgot-email', '#forgot-email-error');
+                
+                let hasError = false;
+                
+                // 验证邮箱
+                if (!email) {
+                    showError('#forgot-email', '#forgot-email-error', '请输入邮箱地址');
+                    hasError = true;
+                } else if (!validateEmail(email)) {
+                    showError('#forgot-email', '#forgot-email-error', '请输入有效的邮箱地址');
+                    hasError = true;
+                }
+                
+                if (hasError) return;
+                
+                // 显示加载状态
+                const submitBtn = document.querySelector('#forgot-password-submit');
+                const btnText = document.querySelector('#forgot-password-btn-text');
+                submitBtn.disabled = true;
+                btnText.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>发送中...';
+                
+                // 模拟发送重置链接
+                setTimeout(() => {
+                    showSuccessModal('重置密码链接已发送到您的邮箱，请查收');
+                    
+                    // 重置按钮状态
+                    submitBtn.disabled = false;
+                    btnText.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>发送重置链接';
+                    
+                    // 清空邮箱输入框
+                    document.querySelector('#forgot-email').value = '';
+                }, 2000);
+            });
+            
+            // 成功模态框
+            const successModal = document.querySelector('#success-modal');
+            const successMessage = document.querySelector('#success-message');
+            const successOkBtn = document.querySelector('#success-ok-btn');
+            
+            function showSuccessModal(message) {
+                successMessage.textContent = message;
+                successModal.classList.remove('hidden');
+            }
+            
+            successOkBtn.addEventListener('click', function() {
+                successModal.classList.add('hidden');
+            });
+            
+            // 点击模态框背景关闭
+            successModal.addEventListener('click', function(e) {
+                if (e.target === successModal) {
+                    successModal.classList.add('hidden');
+                }
+            });
+            
+            // 键盘事件
+            document.addEventListener('keydown', function(e) {
+                // ESC键关闭模态框
+                if (e.key === 'Escape' && !successModal.classList.contains('hidden')) {
+                    successModal.classList.add('hidden');
+                }
+                
+                // Enter键提交表单
+                if (e.key === 'Enter') {
+                    if (!loginForm.classList.contains('hidden')) {
+                        loginForm.dispatchEvent(new Event('submit'));
+                    } else if (!registerForm.classList.contains('hidden')) {
+                        registerForm.dispatchEvent(new Event('submit'));
+                    } else if (!forgotPasswordForm.classList.contains('hidden')) {
+                        forgotPasswordForm.dispatchEvent(new Event('submit'));
+                    }
+                }
+            });
+            
+            // 输入框实时验证
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    // 清除对应字段的错误状态
+                    const errorId = this.id + '-error';
+                    hideError('#' + this.id, '#' + errorId);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

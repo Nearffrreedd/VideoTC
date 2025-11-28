@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文案编辑 - 链文</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        tertiary: '#06b6d4',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        info: '#3b82f6',
+                        'text-primary': '#1f2937',
+                        'text-secondary': '#6b7280',
+                        'bg-primary': '#f8fafc',
+                        'bg-secondary': '#f1f5f9',
+                        'border-primary': '#e2e8f0',
+                        'border-secondary': '#cbd5e1'
+                    },
+                    backgroundImage: {
+                        'gradient-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        'gradient-secondary': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        'gradient-tertiary': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        'gradient-success': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                        'gradient-card': 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+                        'gradient-bg': 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)'
+                    },
+                    boxShadow: {
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(102, 126, 234, 0.3)',
+                        'glow-hover': '0 0 30px rgba(102, 126, 234, 0.5)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-collapsed {
+            width: 56px;
+        }
+        
+        .sidebar-expanded {
+            width: 240px;
+        }
+        
+        .main-content-expanded {
+            margin-left: 240px;
+        }
+        
+        .main-content-collapsed {
+            margin-left: 56px;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .input-focus:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .card-gradient {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        
+        .nav-item-active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-right: 3px solid #667eea;
+        }
+        
+        .nav-item-hover:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+        
+        .text-editor {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .text-editor:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .toolbar-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateY(-1px);
+        }
+        
+        .toolbar-btn.active {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradient 3s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-bg min-h-screen">
+    <!-- 顶部导航栏 -->
+    <header id="top-navbar" class="fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-gray-200/50 z-50">
+        <div class="flex items-center justify-between h-full px-4">
+            <!-- 左侧：Logo和菜单切换 -->
+            <div id="navbar-left" class="flex items-center space-x-4">
+                <button id="sidebar-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-bars text-gray-600"></i>
+                </button>
+                <div id="logo-section" class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-link text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-bold gradient-text">链文</h1>
+                </div>
+            </div>
+            
+            <!-- 中间：搜索框（可选） -->
+            <div id="navbar-center" class="hidden md:flex flex-1 max-w-md mx-8">
+                <div class="relative w-full">
+                    <input type="text" id="global-search" placeholder="搜索历史记录..." 
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg input-focus">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            
+            <!-- 右侧：用户操作 -->
+            <div id="navbar-right" class="flex items-center space-x-4">
+                <button id="notification-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
+                    <i class="fas fa-bell text-gray-600"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-danger rounded-full"></span>
+                </button>
+                <div id="user-menu" class="flex items-center space-x-3">
+                    <img src="https://s.coze.cn/image/lCj-ywvSTnI/" 
+                         alt="用户头像" class="w-8 h-8 rounded-full border-2 border-primary/20">
+                    <span class="hidden md:block text-sm font-medium text-gray-700">张小明</span>
+                    <button id="user-dropdown" class="p-1 rounded hover:bg-gray-100">
+                        <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 左侧菜单 -->
+    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 sidebar-expanded bg-white/90 backdrop-blur-md border-r border-gray-200/50 z-40 transition-all duration-300">
+        <nav id="sidebar-nav" class="p-4 space-y-2">
+            <a href="P-HOME.html" id="nav-home" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-home text-lg w-5"></i>
+                <span class="sidebar-text">首页</span>
+            </a>
+            <a href="P-BATCH_PROCESS.html" id="nav-batch" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-layer-group text-lg w-5"></i>
+                <span class="sidebar-text">批量处理</span>
+            </a>
+            <a href="P-HISTORY.html" id="nav-history" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-history text-lg w-5"></i>
+                <span class="sidebar-text">历史记录</span>
+            </a>
+            <a href="P-HELP.html" id="nav-help" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-question-circle text-lg w-5"></i>
+                <span class="sidebar-text">帮助教程</span>
+            </a>
+        </nav>
+        
+        <!-- 底部用户信息 -->
+        <div id="sidebar-footer" class="absolute bottom-4 left-4 right-4">
+            <div class="sidebar-text p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
+                <div class="text-xs text-gray-500 mb-1">今日已提取</div>
+                <div class="text-lg font-bold gradient-text">12 次</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="main-content-expanded pt-16 min-h-screen transition-all duration-300">
+        <div class="p-6 max-w-7xl mx-auto">
+            <!-- 页面头部 -->
+            <div id="page-header" class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-2">文案编辑</h2>
+                        <nav id="breadcrumb" class="text-white/80 text-sm">
+                            <a href="P-HOME.html" class="hover:text-white transition-colors">首页</a>
+                            <span class="mx-2">></span>
+                            <a href="P-EXTRACT_RESULT.html" class="hover:text-white transition-colors">提取结果</a>
+                            <span class="mx-2">></span>
+                            <span>文案编辑</span>
+                        </nav>
+                    </div>
+                    <button id="back-btn" class="flex items-center space-x-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-all">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>返回</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 文案编辑区 -->
+            <section id="editor-section" class="card-gradient p-6 rounded-3xl shadow-card mb-6">
+                <!-- 编辑器工具栏 -->
+                <div id="editor-toolbar" class="flex items-center space-x-2 p-3 bg-gray-50 rounded-xl mb-4">
+                    <button id="bold-btn" class="toolbar-btn p-2 rounded-lg text-gray-600 hover:text-primary" title="加粗 (Ctrl+B)">
+                        <i class="fas fa-bold"></i>
+                    </button>
+                    <button id="italic-btn" class="toolbar-btn p-2 rounded-lg text-gray-600 hover:text-primary" title="斜体 (Ctrl+I)">
+                        <i class="fas fa-italic"></i>
+                    </button>
+                    <button id="underline-btn" class="toolbar-btn p-2 rounded-lg text-gray-600 hover:text-primary" title="下划线 (Ctrl+U)">
+                        <i class="fas fa-underline"></i>
+                    </button>
+                    <div class="w-px h-6 bg-gray-300"></div>
+                    <button id="undo-btn" class="toolbar-btn p-2 rounded-lg text-gray-600 hover:text-primary" title="撤销 (Ctrl+Z)">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                    <button id="redo-btn" class="toolbar-btn p-2 rounded-lg text-gray-600 hover:text-primary" title="重做 (Ctrl+Y)">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <div class="w-px h-6 bg-gray-300"></div>
+                    <button id="find-replace-btn" class="toolbar-btn p-2 rounded-lg text-gray-600 hover:text-primary" title="查找替换 (Ctrl+F)">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <div class="w-px h-6 bg-gray-300"></div>
+                    <div class="flex items-center space-x-2 ml-auto">
+                        <span id="char-count" class="text-sm text-gray-500">字数: 0</span>
+                        <span id="word-count" class="text-sm text-gray-500">词数: 0</span>
+                    </div>
+                </div>
+
+                <!-- 文案编辑器 -->
+                <div id="editor-container" class="relative">
+                    <textarea id="text-editor" 
+                              class="text-editor w-full h-96 p-4 rounded-xl resize-none text-gray-800 placeholder-gray-400"
+                              placeholder="在这里编辑您的文案内容..."
+                              spellcheck="false"></textarea>
+                </div>
+            </section>
+
+            <!-- 操作按钮区 -->
+            <section id="action-section" class="card-gradient p-6 rounded-3xl shadow-card">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <button id="save-btn" class="btn-gradient flex-1 py-3 px-6 text-white font-semibold rounded-xl shadow-glow">
+                        <i class="fas fa-save mr-2"></i>
+                        保存文案
+                    </button>
+                    <button id="download-btn" class="flex-1 py-3 px-6 border-2 border-primary text-primary font-semibold rounded-xl hover:bg-primary hover:text-white transition-all">
+                        <i class="fas fa-download mr-2"></i>
+                        下载文案
+                    </button>
+                    <button id="copy-btn" class="flex-1 py-3 px-6 border-2 border-tertiary text-tertiary font-semibold rounded-xl hover:bg-tertiary hover:text-white transition-all">
+                        <i class="fas fa-copy mr-2"></i>
+                        复制文案
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 查找替换弹窗 -->
+    <div id="find-replace-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="card-gradient p-6 rounded-2xl shadow-card max-w-md w-full">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800">查找替换</h3>
+                    <button id="close-find-modal" class="p-2 text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <label for="find-input" class="block text-sm font-medium text-gray-700 mb-2">查找</label>
+                        <input type="text" id="find-input" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                    </div>
+                    <div>
+                        <label for="replace-input" class="block text-sm font-medium text-gray-700 mb-2">替换为</label>
+                        <input type="text" id="replace-input" class="w-full px-3 py-2 border border-gray-300 rounded-lg input-focus">
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="find-next-btn" class="flex-1 py-2 px-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all">
+                            查找下一个
+                        </button>
+                        <button id="replace-btn" class="flex-1 py-2 px-4 bg-primary text-white rounded-lg hover:bg-secondary transition-all">
+                            替换
+                        </button>
+                        <button id="replace-all-btn" class="flex-1 py-2 px-4 bg-success text-white rounded-lg hover:bg-green-600 transition-all">
+                            全部替换
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知提示 -->
+    <div id="notification" class="notification bg-white rounded-lg shadow-card p-4 border-l-4 border-success">
+        <div class="flex items-center space-x-3">
+            <i class="fas fa-check-circle text-success"></i>
+            <div>
+                <div class="font-medium text-gray-800">操作成功</div>
+                <div id="notification-message" class="text-sm text-gray-600">文案已保存</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 解析URL参数的辅助函数
+            function getUrlParams() {
+                const params = {};
+                const queryString = window.location.search.substring(1);
+                const urlParams = new URLSearchParams(queryString);
+                
+                for(const [key, value] of urlParams.entries()) {
+                    params[key] = value;
+                }
+                return params;
+            }
+
+            // 获取URL参数
+            const params = getUrlParams();
+            const textEditor = document.querySelector('#text-editor');
+            
+            // 模拟加载文案内容
+            function loadTextContent() {
+                // 在实际应用中，这里会根据文案ID从服务器获取内容
+                // 这里使用模拟数据
+                const mockContents = {
+                    "content1": "这是一段示例文案内容。\n\n您可以在这里进行编辑、修改和格式化。\n\n支持加粗、斜体、下划线等基本格式。",
+                    "content2": "【00:00】大家好，欢迎来到我的频道！\n【00:15】今天我们要讨论的是如何提高工作效率。\n【01:30】首先，我们需要制定一个明确的计划...",
+                    "content3": "# 视频标题\n\n这是一个Markdown格式的文案示例。\n\n## 主要内容\n\n- 第一点\n- 第二点\n- 第三点\n\n**重点强调**：保持专注是关键。"
+                };
+                
+                const contentId = params.contentId || 'content1';
+                const content = mockContents[contentId] || "这是一段示例文案内容。您可以在这里进行编辑和修改。";
+                
+                textEditor.value = content;
+                updateCharCount();
+            }
+
+            // 侧边栏切换功能
+            const sidebarToggle = document.querySelector('#sidebar-toggle');
+            const sidebar = document.querySelector('#sidebar');
+            const mainContent = document.querySelector('#main-content');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            
+            let sidebarCollapsed = false;
+            
+            sidebarToggle.addEventListener('click', () => {
+                sidebarCollapsed = !sidebarCollapsed;
+                
+                if (sidebarCollapsed) {
+                    sidebar.classList.remove('sidebar-expanded');
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.remove('main-content-expanded');
+                    mainContent.classList.add('main-content-collapsed');
+                    sidebarTexts.forEach(text => text.style.display = 'none');
+                } else {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.add('sidebar-expanded');
+                    mainContent.classList.remove('main-content-collapsed');
+                    mainContent.classList.add('main-content-expanded');
+                    sidebarTexts.forEach(text => text.style.display = 'block');
+                }
+            });
+
+            // 返回按钮
+            document.querySelector('#back-btn').addEventListener('click', function() {
+                window.location.href = 'P-EXTRACT_RESULT.html';
+            });
+
+            // 编辑器工具栏功能
+            document.querySelector('#bold-btn').addEventListener('click', function() {
+                applyFormatting('bold');
+            });
+
+            document.querySelector('#italic-btn').addEventListener('click', function() {
+                applyFormatting('italic');
+            });
+
+            document.querySelector('#underline-btn').addEventListener('click', function() {
+                applyFormatting('underline');
+            });
+
+            document.querySelector('#undo-btn').addEventListener('click', function() {
+                document.execCommand('undo', false, null);
+            });
+
+            document.querySelector('#redo-btn').addEventListener('click', function() {
+                document.execCommand('redo', false, null);
+            });
+
+            // 查找替换功能
+            document.querySelector('#find-replace-btn').addEventListener('click', function() {
+                document.querySelector('#find-replace-modal').classList.remove('hidden');
+                document.querySelector('#find-input').focus();
+            });
+
+            document.querySelector('#close-find-modal').addEventListener('click', function() {
+                document.querySelector('#find-replace-modal').classList.add('hidden');
+            });
+
+            // 查找替换功能实现
+            let currentFindIndex = -1;
+
+            document.querySelector('#find-next-btn').addEventListener('click', function() {
+                const findText = document.querySelector('#find-input').value;
+                const content = textEditor.value;
+                
+                if (!findText) return;
+                
+                currentFindIndex = content.indexOf(findText, currentFindIndex + 1);
+                
+                if (currentFindIndex === -1) {
+                    currentFindIndex = content.indexOf(findText, 0);
+                    if (currentFindIndex === -1) {
+                        showNotification('未找到匹配内容', 'warning');
+                        return;
+                    }
+                }
+                
+                textEditor.focus();
+                textEditor.setSelectionRange(currentFindIndex, currentFindIndex + findText.length);
+            });
+
+            document.querySelector('#replace-btn').addEventListener('click', function() {
+                const findText = document.querySelector('#find-input').value;
+                const replaceText = document.querySelector('#replace-input').value;
+                
+                if (!findText) return;
+                
+                const start = textEditor.selectionStart;
+                const end = textEditor.selectionEnd;
+                const selectedText = textEditor.value.substring(start, end);
+                
+                if (selectedText === findText) {
+                    const newContent = textEditor.value.substring(0, start) + replaceText + textEditor.value.substring(end);
+                    textEditor.value = newContent;
+                    textEditor.setSelectionRange(start, start + replaceText.length);
+                    updateCharCount();
+                    showNotification('已替换', 'success');
+                } else {
+                    showNotification('请先选择要替换的文本', 'warning');
+                }
+            });
+
+            document.querySelector('#replace-all-btn').addEventListener('click', function() {
+                const findText = document.querySelector('#find-input').value;
+                const replaceText = document.querySelector('#replace-input').value;
+                
+                if (!findText) return;
+                
+                const newContent = textEditor.value.replace(new RegExp(findText, 'g'), replaceText);
+                const replacedCount = (textEditor.value.match(new RegExp(findText, 'g')) || []).length;
+                
+                textEditor.value = newContent;
+                updateCharCount();
+                showNotification(`已替换 ${replacedCount} 处`, 'success');
+            });
+
+            // 格式化功能
+            function applyFormatting(type) {
+                textEditor.focus();
+                
+                switch(type) {
+                    case 'bold':
+                        document.execCommand('bold', false, null);
+                        break;
+                    case 'italic':
+                        document.execCommand('italic', false, null);
+                        break;
+                    case 'underline':
+                        document.execCommand('underline', false, null);
+                        break;
+                }
+                
+                updateCharCount();
+            }
+
+            // 字数统计
+            function updateCharCount() {
+                const content = textEditor.value;
+                const charCount = content.length;
+                const wordCount = content.trim().split(/\s+/).filter(word => word).length;
+                
+                document.querySelector('#char-count').textContent = `字数: ${charCount}`;
+                document.querySelector('#word-count').textContent = `词数: ${wordCount}`;
+            }
+
+            textEditor.addEventListener('input', updateCharCount);
+
+            // 保存按钮
+            document.querySelector('#save-btn').addEventListener('click', function() {
+                const content = textEditor.value;
+                
+                // 模拟保存过程
+                const btn = this;
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>保存中...';
+                btn.disabled = true;
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    showNotification('文案已保存', 'success');
+                }, 1000);
+            });
+
+            // 下载按钮
+            document.querySelector('#download-btn').addEventListener('click', function() {
+                const content = textEditor.value;
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '文案内容.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+                showNotification('文案已下载', 'success');
+            });
+
+            // 复制按钮
+            document.querySelector('#copy-btn').addEventListener('click', async function() {
+                const content = textEditor.value;
+                
+                try {
+                    await navigator.clipboard.writeText(content);
+                    showNotification('文案已复制到剪贴板', 'success');
+                } catch (err) {
+                    showNotification('复制失败，请手动复制', 'error');
+                }
+            });
+
+            // 快捷键支持
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'b':
+                            e.preventDefault();
+                            applyFormatting('bold');
+                            break;
+                        case 'i':
+                            e.preventDefault();
+                            applyFormatting('italic');
+                            break;
+                        case 'u':
+                            e.preventDefault();
+                            applyFormatting('underline');
+                            break;
+                        case 'z':
+                            e.preventDefault();
+                            document.execCommand('undo', false, null);
+                            break;
+                        case 'y':
+                            e.preventDefault();
+                            document.execCommand('redo', false, null);
+                            break;
+                        case 'f':
+                            e.preventDefault();
+                            document.querySelector('#find-replace-modal').classList.remove('hidden');
+                            document.querySelector('#find-input').focus();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            document.querySelector('#save-btn').click();
+                            break;
+                    }
+                }
+            });
+
+            // 通知提示功能
+            function showNotification(message, type = 'success') {
+                const notification = document.querySelector('#notification');
+                const messageEl = document.querySelector('#notification-message');
+                const icon = notification.querySelector('i');
+                
+                messageEl.textContent = message;
+                
+                // 设置不同类型的样式
+                notification.className = 'notification bg-white rounded-lg shadow-card p-4 border-l-4';
+                icon.className = 'fas text-lg';
+                
+                switch(type) {
+                    case 'success':
+                        notification.classList.add('border-success');
+                        icon.classList.add('fa-check-circle', 'text-success');
+                        break;
+                    case 'warning':
+                        notification.classList.add('border-warning');
+                        icon.classList.add('fa-exclamation-triangle', 'text-warning');
+                        break;
+                    case 'error':
+                        notification.classList.add('border-danger');
+                        icon.classList.add('fa-times-circle', 'text-danger');
+                        break;
+                }
+                
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            // 响应式处理
+            function handleResize() {
+                if (window.innerWidth < 768) {
+                    sidebar.style.transform = 'translateX(-100%)';
+                    mainContent.classList.remove('main-content-expanded', 'main-content-collapsed');
+                    mainContent.style.marginLeft = '0';
+                } else {
+                    sidebar.style.transform = 'translateX(0)';
+                    if (sidebarCollapsed) {
+                        mainContent.classList.add('main-content-collapsed');
+                    } else {
+                        mainContent.classList.add('main-content-expanded');
+                    }
+                }
+            }
+
+            window.addEventListener('resize', handleResize);
+            
+            // 初始化
+            loadTextContent();
+            handleResize();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提取结果 - 链文</title>
+    <script src="https://unpkg.byted-static.com/coze/space_ppt_lib/1.0.3-alpha.12/lib/tailwindcss.js"></script>
+    <script src="https://unpkg.byted-static.com/fortawesome/fontawesome-free/6.7.2/js/all.min.js" data-auto-replace-svg="nest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        tertiary: '#06b6d4',
+                        success: '#10b981',
+                        danger: '#ef4444',
+                        warning: '#f59e0b',
+                        info: '#3b82f6',
+                        'text-primary': '#1f2937',
+                        'text-secondary': '#6b7280',
+                        'bg-primary': '#f8fafc',
+                        'bg-secondary': '#f1f5f9',
+                        'border-primary': '#e2e8f0',
+                        'border-secondary': '#cbd5e1'
+                    },
+                    backgroundImage: {
+                        'gradient-primary': 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        'gradient-secondary': 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                        'gradient-tertiary': 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                        'gradient-success': 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                        'gradient-card': 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
+                        'gradient-bg': 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)'
+                    },
+                    boxShadow: {
+                        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                        'glow': '0 0 20px rgba(102, 126, 234, 0.3)',
+                        'glow-hover': '0 0 30px rgba(102, 126, 234, 0.5)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-collapsed {
+            width: 56px;
+        }
+        
+        .sidebar-expanded {
+            width: 240px;
+        }
+        
+        .main-content-expanded {
+            margin-left: 240px;
+        }
+        
+        .main-content-collapsed {
+            margin-left: 56px;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .input-focus:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .card-gradient {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+        }
+        
+        .nav-item-active {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-right: 3px solid #667eea;
+        }
+        
+        .nav-item-hover:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+        }
+        
+        .format-btn-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .format-btn-inactive {
+            background: white;
+            color: #6b7280;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .format-btn-inactive:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+        
+        .copy-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .batch-item {
+            transition: all 0.3s ease;
+        }
+        
+        .batch-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-bg min-h-screen">
+    <!-- 顶部导航栏 -->
+    <header id="top-navbar" class="fixed top-0 left-0 right-0 h-16 bg-white/90 backdrop-blur-md border-b border-gray-200/50 z-50">
+        <div class="flex items-center justify-between h-full px-4">
+            <!-- 左侧：Logo和菜单切换 -->
+            <div id="navbar-left" class="flex items-center space-x-4">
+                <button id="sidebar-toggle" class="p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-bars text-gray-600"></i>
+                </button>
+                <div id="logo-section" class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-link text-white text-sm"></i>
+                    </div>
+                    <h1 class="text-xl font-bold gradient-text">链文</h1>
+                </div>
+            </div>
+            
+            <!-- 中间：搜索框（可选） -->
+            <div id="navbar-center" class="hidden md:flex flex-1 max-w-md mx-8">
+                <div class="relative w-full">
+                    <input type="text" id="global-search" placeholder="搜索历史记录..." 
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg input-focus">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+            
+            <!-- 右侧：用户操作 -->
+            <div id="navbar-right" class="flex items-center space-x-4">
+                <button id="notification-btn" class="p-2 rounded-lg hover:bg-gray-100 transition-colors relative">
+                    <i class="fas fa-bell text-gray-600"></i>
+                    <span class="absolute -top-1 -right-1 w-3 h-3 bg-danger rounded-full"></span>
+                </button>
+                <div id="user-menu" class="flex items-center space-x-3">
+                    <img src="https://s.coze.cn/image/eZmsZGPDV_E/" 
+                         alt="用户头像" class="w-8 h-8 rounded-full border-2 border-primary/20">
+                    <span class="hidden md:block text-sm font-medium text-gray-700">张小明</span>
+                    <button id="user-dropdown" class="p-1 rounded hover:bg-gray-100">
+                        <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 左侧菜单 -->
+    <aside id="sidebar" class="fixed left-0 top-16 bottom-0 sidebar-expanded bg-white/90 backdrop-blur-md border-r border-gray-200/50 z-40 transition-all duration-300">
+        <nav id="sidebar-nav" class="p-4 space-y-2">
+            <a href="P-HOME.html" id="nav-home" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-home text-lg w-5"></i>
+                <span class="sidebar-text">首页</span>
+            </a>
+            <a href="P-BATCH_PROCESS.html" id="nav-batch" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-layer-group text-lg w-5"></i>
+                <span class="sidebar-text">批量处理</span>
+            </a>
+            <a href="P-HISTORY.html" id="nav-history" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-history text-lg w-5"></i>
+                <span class="sidebar-text">历史记录</span>
+            </a>
+            <a href="P-HELP.html" id="nav-help" class="nav-item-hover flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-600 hover:text-gray-800 transition-all">
+                <i class="fas fa-question-circle text-lg w-5"></i>
+                <span class="sidebar-text">帮助教程</span>
+            </a>
+        </nav>
+        
+        <!-- 底部用户信息 -->
+        <div id="sidebar-footer" class="absolute bottom-4 left-4 right-4">
+            <div class="sidebar-text p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
+                <div class="text-xs text-gray-500 mb-1">今日已提取</div>
+                <div class="text-lg font-bold gradient-text">12 次</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- 主内容区 -->
+    <main id="main-content" class="main-content-expanded pt-16 min-h-screen transition-all duration-300">
+        <div class="p-6 max-w-7xl mx-auto">
+            <!-- 页面头部 -->
+            <div id="page-header" class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white mb-2">提取结果</h2>
+                        <nav id="breadcrumb" class="text-white/80 text-sm">
+                            <span id="breadcrumb-prev">首页</span>
+                            <i class="fas fa-chevron-right mx-2"></i>
+                            <span>提取结果</span>
+                        </nav>
+                    </div>
+                    <button id="back-home-btn" class="flex items-center space-x-2 px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-all">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>返回首页</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 批量提取结果列表（仅批量时显示） -->
+            <section id="batch-results-section" class="hidden mb-8">
+                <div class="card-gradient p-6 rounded-2xl shadow-card">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">批量提取结果</h3>
+                    <div id="batch-results-list" class="space-y-3">
+                        <!-- 批量结果项将动态生成 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 文案展示区 -->
+            <section id="content-display-section" class="card-gradient p-6 rounded-2xl shadow-card mb-6">
+                <!-- 视频信息 -->
+                <div id="video-info" class="mb-6 p-4 bg-gray-50 rounded-xl">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-video text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h4 id="video-title" class="text-lg font-semibold text-gray-800">视频标题</h4>
+                            <div class="flex items-center space-x-4 text-sm text-gray-600 mt-1">
+                                <span id="video-platform">Bilibili</span>
+                                <span id="extract-time">2024-01-15 14:30:25</span>
+                                <span id="content-length">约 1200 字</span>
+                            </div>
+                        </div>
+                        <a href="#" id="video-link" target="_blank" class="text-primary hover:text-secondary transition-colors">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 格式切换 -->
+                <div id="format-switcher" class="mb-6">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm font-medium text-gray-700">显示格式：</span>
+                        <div class="flex space-x-2">
+                            <button id="format-markdown" class="format-btn-active px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                                <i class="fas fa-code mr-2"></i>Markdown
+                            </button>
+                            <button id="format-timestamp" class="format-btn-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                                <i class="fas fa-clock mr-2"></i>带时间戳
+                            </button>
+                            <button id="format-plain" class="format-btn-inactive px-4 py-2 rounded-lg text-sm font-medium transition-all">
+                                <i class="fas fa-file-alt mr-2"></i>纯文本
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 文案内容 -->
+                <div id="content-area" class="mb-6">
+                    <div class="relative">
+                        <div class="absolute top-3 right-3 flex space-x-2">
+                            <button id="copy-content-btn" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors" title="复制内容">
+                                <i class="fas fa-copy text-gray-600"></i>
+                            </button>
+                            <button id="fullscreen-btn" class="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors" title="全屏查看">
+                                <i class="fas fa-expand text-gray-600"></i>
+                            </button>
+                        </div>
+                        <div id="content-display" class="bg-gray-50 rounded-xl p-6 min-h-[300px] overflow-auto font-mono text-sm leading-relaxed">
+                            <pre id="content-text" class="whitespace-pre-wrap break-words"></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按钮区 -->
+                <div id="action-buttons" class="flex flex-wrap gap-4">
+                    <button id="download-btn" class="btn-gradient flex items-center space-x-2 px-6 py-3 text-white font-semibold rounded-xl shadow-glow">
+                        <i class="fas fa-download"></i>
+                        <span>下载文案</span>
+                    </button>
+                    <button id="copy-btn" class="flex items-center space-x-2 px-6 py-3 border-2 border-primary text-primary font-semibold rounded-xl hover:bg-primary hover:text-white transition-all">
+                        <i class="fas fa-copy"></i>
+                        <span>复制文案</span>
+                    </button>
+                    <button id="edit-btn" class="flex items-center space-x-2 px-6 py-3 border-2 border-tertiary text-tertiary font-semibold rounded-xl hover:bg-tertiary hover:text-white transition-all">
+                        <i class="fas fa-edit"></i>
+                        <span>编辑文案</span>
+                    </button>
+                    <button id="share-btn" class="flex items-center space-x-2 px-6 py-3 border-2 border-secondary text-secondary font-semibold rounded-xl hover:bg-secondary hover:text-white transition-all">
+                        <i class="fas fa-share-alt"></i>
+                        <span>分享文案</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 分享弹窗 -->
+            <div id="share-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center">
+                <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">分享文案</h3>
+                        <button id="close-share-modal" class="p-1 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">分享链接</label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="share-link" value="https://lianwen.app/share/abc123" readonly 
+                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50">
+                            <button id="copy-share-link" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button id="copy-share-link-btn" class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                            复制链接
+                        </button>
+                        <button id="close-share-modal-btn" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-secondary transition-colors">
+                            关闭
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 解析URL参数
+            function getUrlParams() {
+                const params = {};
+                const queryString = window.location.search.substring(1);
+                const urlParams = new URLSearchParams(queryString);
+                
+                for(const [key, value] of urlParams.entries()) {
+                    params[key] = value;
+                }
+                return params;
+            }
+
+            // 模拟文案数据
+            const mockContent = {
+                markdown: `
+# 视频标题：如何高效学习前端开发
+
+## 引言
+大家好，今天我想和大家分享一下如何高效学习前端开发。前端开发是一个非常有趣且充满挑战的领域，需要我们不断学习和实践。
+
+## 学习路径
+1. **基础知识**：HTML、CSS、JavaScript
+2. **框架学习**：React、Vue、Angular
+3. **项目实践**：多做项目，积累经验
+
+## 总结
+学习前端开发需要耐心和毅力，希望今天的分享对大家有帮助。
+                `,
+                timestamp: `
+[00:00:00] 大家好，今天我想和大家分享一下如何高效学习前端开发。
+[00:00:15] 前端开发是一个非常有趣且充满挑战的领域，需要我们不断学习和实践。
+[00:01:20] 首先，我们需要掌握基础知识，包括HTML、CSS和JavaScript。
+[00:02:30] 然后，学习主流框架如React、Vue、Angular。
+[00:03:45] 最重要的是多做项目，通过实践来巩固所学知识。
+[00:05:10] 学习前端开发需要耐心和毅力，希望今天的分享对大家有帮助。
+                `,
+                plain: `
+大家好，今天我想和大家分享一下如何高效学习前端开发。前端开发是一个非常有趣且充满挑战的领域，需要我们不断学习和实践。
+
+首先，我们需要掌握基础知识，包括HTML、CSS和JavaScript。然后，学习主流框架如React、Vue、Angular。最重要的是多做项目，通过实践来巩固所学知识。
+
+学习前端开发需要耐心和毅力，希望今天的分享对大家有帮助。
+                `
+            };
+
+            // 批量处理模拟数据
+            const mockBatchResults = [
+                {
+                    id: 'batch-1',
+                    url: 'https://www.bilibili.com/video/BV1234567890',
+                    platform: 'Bilibili',
+                    title: '前端开发入门指南',
+                    status: 'success',
+                    length: '850字',
+                    time: '2024-01-15 14:30:25'
+                },
+                {
+                    id: 'batch-2',
+                    url: 'https://www.youtube.com/watch?v=abcdefghijk',
+                    platform: 'YouTube',
+                    title: 'React Hooks 详解',
+                    status: 'success',
+                    length: '1200字',
+                    time: '2024-01-15 14:31:10'
+                },
+                {
+                    id: 'batch-3',
+                    url: 'https://v.douyin.com/abcd1234/',
+                    platform: '抖音',
+                    title: 'CSS动画效果教程',
+                    status: 'failed',
+                    length: '',
+                    time: '2024-01-15 14:32:15'
+                }
+            ];
+
+            // 获取URL参数
+            const params = getUrlParams();
+            let currentFormat = params.format || 'markdown';
+            let isBatch = false;
+
+            // 初始化页面
+            function initializePage() {
+                // 检查是否为批量处理结果
+                if (params.batchId || params.batchResults) {
+                    isBatch = true;
+                    showBatchResults();
+                    updateBreadcrumb('批量处理');
+                } else {
+                    isBatch = false;
+                    showSingleResult();
+                    updateBreadcrumb('首页');
+                }
+            }
+
+            // 更新面包屑导航
+            function updateBreadcrumb(prevPage) {
+                const breadcrumbPrev = document.querySelector('#breadcrumb-prev');
+                if (prevPage === '批量处理') {
+                    breadcrumbPrev.innerHTML = '<a href="P-BATCH_PROCESS.html" class="hover:text-white transition-colors">批量处理</a>';
+                } else {
+                    breadcrumbPrev.innerHTML = '<a href="P-HOME.html" class="hover:text-white transition-colors">首页</a>';
+                }
+            }
+
+            // 显示批量处理结果
+            function showBatchResults() {
+                const batchSection = document.querySelector('#batch-results-section');
+                const singleSection = document.querySelector('#content-display-section');
+                
+                batchSection.classList.remove('hidden');
+                singleSection.classList.add('hidden');
+                
+                renderBatchResults();
+            }
+
+            // 渲染批量处理结果列表
+            function renderBatchResults() {
+                const container = document.querySelector('#batch-results-list');
+                container.innerHTML = '';
+                
+                mockBatchResults.forEach(item => {
+                    const batchItem = document.createElement('div');
+                    batchItem.className = 'batch-item card-gradient p-4 rounded-xl shadow-card cursor-pointer';
+                    batchItem.dataset.batchId = item.id;
+                    
+                    const statusIcon = item.status === 'success' ? 
+                        '<i class="fas fa-check-circle text-success"></i>' : 
+                        '<i class="fas fa-times-circle text-danger"></i>';
+                    
+                    const statusText = item.status === 'success' ? '提取成功' : '提取失败';
+                    const statusClass = item.status === 'success' ? 'text-success' : 'text-danger';
+                    
+                    batchItem.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-video text-white"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-gray-800 text-sm truncate max-w-md">${item.title}</h4>
+                                    <div class="flex items-center space-x-4 text-xs text-gray-600 mt-1">
+                                        <span>${item.platform}</span>
+                                        <span>${item.time}</span>
+                                        ${item.status === 'success' ? `<span>${item.length}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="${statusClass} text-sm font-medium">${statusIcon} ${statusText}</span>
+                                ${item.status === 'success' ? 
+                                    '<button class="view-batch-item px-3 py-1 bg-primary text-white text-xs rounded-lg hover:bg-secondary transition-colors">查看</button>' : 
+                                    '<button class="retry-batch-item px-3 py-1 bg-warning text-white text-xs rounded-lg hover:bg-yellow-600 transition-colors">重试</button>'
+                                }
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(batchItem);
+                });
+                
+                // 添加批量结果项点击事件
+                document.querySelectorAll('.view-batch-item').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const batchItem = this.closest('.batch-item');
+                        const batchId = batchItem.dataset.batchId;
+                        showSingleBatchResult(batchId);
+                    });
+                });
+                
+                document.querySelectorAll('.retry-batch-item').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        console.log('重试提取失败的视频');
+                        // 这里可以实现重试逻辑
+                    });
+                });
+            }
+
+            // 显示单个批量处理结果
+            function showSingleBatchResult(batchId) {
+                const batchSection = document.querySelector('#batch-results-section');
+                const singleSection = document.querySelector('#content-display-section');
+                
+                batchSection.classList.add('hidden');
+                singleSection.classList.remove('hidden');
+                
+                // 更新视频信息为选中的批量结果
+                const batchItem = mockBatchResults.find(item => item.id === batchId);
+                if (batchItem) {
+                    updateVideoInfo(batchItem.title, batchItem.platform, batchItem.time, batchItem.length);
+                    updateContentDisplay(currentFormat);
+                }
+            }
+
+            // 显示单个提取结果
+            function showSingleResult() {
+                const batchSection = document.querySelector('#batch-results-section');
+                const singleSection = document.querySelector('#content-display-section');
+                
+                batchSection.classList.add('hidden');
+                singleSection.classList.remove('hidden');
+                
+                // 更新视频信息
+                updateVideoInfo(
+                    '如何高效学习前端开发',
+                    params.platform || 'Bilibili',
+                    new Date().toLocaleString('zh-CN'),
+                    '约 1200 字'
+                );
+                
+                // 更新视频链接
+                if (params.url) {
+                    document.querySelector('#video-link').href = params.url;
+                }
+                
+                // 显示文案内容
+                updateContentDisplay(currentFormat);
+            }
+
+            // 更新视频信息
+            function updateVideoInfo(title, platform, time, length) {
+                document.querySelector('#video-title').textContent = title;
+                document.querySelector('#video-platform').textContent = platform;
+                document.querySelector('#extract-time').textContent = time;
+                document.querySelector('#content-length').textContent = length;
+            }
+
+            // 更新文案显示
+            function updateContentDisplay(format) {
+                const contentText = document.querySelector('#content-text');
+                contentText.textContent = mockContent[format] || mockContent.markdown;
+                
+                // 更新格式按钮状态
+                document.querySelectorAll('[id^="format-"]').forEach(btn => {
+                    btn.classList.remove('format-btn-active');
+                    btn.classList.add('format-btn-inactive');
+                });
+                
+                document.querySelector(`#format-${format}`).classList.remove('format-btn-inactive');
+                document.querySelector(`#format-${format}`).classList.add('format-btn-active');
+            }
+
+            // 格式切换事件
+            document.querySelectorAll('[id^="format-"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const format = this.id.replace('format-', '');
+                    currentFormat = format;
+                    updateContentDisplay(format);
+                });
+            });
+
+            // 返回首页按钮
+            document.querySelector('#back-home-btn').addEventListener('click', function() {
+                window.location.href = 'P-HOME.html';
+            });
+
+            // 下载按钮
+            document.querySelector('#download-btn').addEventListener('click', function() {
+                const content = document.querySelector('#content-text').textContent;
+                const filename = `文案_${new Date().toLocaleString('zh-CN').replace(/\//g, '-').replace(/:/g, '-')}.txt`;
+                
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                
+                URL.revokeObjectURL(url);
+            });
+
+            // 复制按钮
+            document.querySelector('#copy-btn').addEventListener('click', function() {
+                const content = document.querySelector('#content-text').textContent;
+                navigator.clipboard.writeText(content).then(() => {
+                    // 显示复制成功提示
+                    const btn = this;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fas fa-check"></i><span>已复制</span>';
+                    btn.classList.add('copy-success');
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                        btn.classList.remove('copy-success');
+                    }, 2000);
+                });
+            });
+
+            // 编辑按钮
+            document.querySelector('#edit-btn').addEventListener('click', function() {
+                const content = document.querySelector('#content-text').textContent;
+                const title = document.querySelector('#video-title').textContent;
+                
+                // 跳转到编辑页面，传递文案内容
+                const params = new URLSearchParams({
+                    content: encodeURIComponent(content),
+                    title: encodeURIComponent(title),
+                    format: currentFormat
+                });
+                
+                window.location.href = `P-TEXT_EDITOR.html?${params.toString()}`;
+            });
+
+            // 分享按钮
+            document.querySelector('#share-btn').addEventListener('click', function() {
+                document.querySelector('#share-modal').classList.remove('hidden');
+            });
+
+            // 关闭分享弹窗
+            document.querySelector('#close-share-modal').addEventListener('click', function() {
+                document.querySelector('#share-modal').classList.add('hidden');
+            });
+
+            document.querySelector('#close-share-modal-btn').addEventListener('click', function() {
+                document.querySelector('#share-modal').classList.add('hidden');
+            });
+
+            // 复制分享链接
+            document.querySelector('#copy-share-link').addEventListener('click', function() {
+                const shareLink = document.querySelector('#share-link').value;
+                navigator.clipboard.writeText(shareLink).then(() => {
+                    this.innerHTML = '<i class="fas fa-check"></i>';
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="fas fa-copy"></i>';
+                    }, 2000);
+                });
+            });
+
+            document.querySelector('#copy-share-link-btn').addEventListener('click', function() {
+                const shareLink = document.querySelector('#share-link').value;
+                navigator.clipboard.writeText(shareLink).then(() => {
+                    const originalText = this.textContent;
+                    this.textContent = '已复制';
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                    }, 2000);
+                });
+            });
+
+            // 全屏查看按钮
+            document.querySelector('#fullscreen-btn').addEventListener('click', function() {
+                const contentDisplay = document.querySelector('#content-display');
+                if (contentDisplay.requestFullscreen) {
+                    contentDisplay.requestFullscreen();
+                } else if (contentDisplay.webkitRequestFullscreen) {
+                    contentDisplay.webkitRequestFullscreen();
+                } else if (contentDisplay.msRequestFullscreen) {
+                    contentDisplay.msRequestFullscreen();
+                }
+            });
+
+            // 侧边栏切换功能
+            const sidebarToggle = document.querySelector('#sidebar-toggle');
+            const sidebar = document.querySelector('#sidebar');
+            const mainContent = document.querySelector('#main-content');
+            const sidebarTexts = document.querySelectorAll('.sidebar-text');
+            
+            let sidebarCollapsed = false;
+            
+            sidebarToggle.addEventListener('click', () => {
+                sidebarCollapsed = !sidebarCollapsed;
+                
+                if (sidebarCollapsed) {
+                    sidebar.classList.remove('sidebar-expanded');
+                    sidebar.classList.add('sidebar-collapsed');
+                    mainContent.classList.remove('main-content-expanded');
+                    mainContent.classList.add('main-content-collapsed');
+                    sidebarTexts.forEach(text => text.style.display = 'none');
+                } else {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebar.classList.add('sidebar-expanded');
+                    mainContent.classList.remove('main-content-collapsed');
+                    mainContent.classList.add('main-content-expanded');
+                    sidebarTexts.forEach(text => text.style.display = 'block');
+                }
+            });
+
+            // 响应式处理
+            function handleResize() {
+                if (window.innerWidth < 768) {
+                    sidebar.style.transform = 'translateX(-100%)';
+                    mainContent.classList.remove('main-content-expanded', 'main-content-collapsed');
+                    mainContent.style.marginLeft = '0';
+                } else {
+                    sidebar.style.transform = 'translateX(0)';
+                    if (sidebarCollapsed) {
+                        mainContent.classList.add('main-content-collapsed');
+                    } else {
+                        mainContent.classList.add('main-content-expanded');
+                    }
+                }
+            }
+            
+            window.addEventListener('resize', handleResize);
+            handleResize(); // 初始化
+
+            // 点击分享弹窗外部关闭
+            document.querySelector('#share-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+
+            // 初始化页面
+            initializePage();
+        });
+    </script>
+</body>
+</html>
