@@ -95,11 +95,11 @@ const TextEditorPage: React.FC = () => {
             break;
           case 'z':
             e.preventDefault();
-            document.execCommand('undo', false, null);
+            document.execCommand('undo', false, '');
             break;
           case 'y':
             e.preventDefault();
-            document.execCommand('redo', false, null);
+            document.execCommand('redo', false, '');
             break;
           case 'f':
             e.preventDefault();
@@ -424,14 +424,14 @@ const TextEditorPage: React.FC = () => {
               </button>
               <div className="w-px h-6 bg-gray-300"></div>
               <button 
-                onClick={() => document.execCommand('undo', false, null)}
+                onClick={() => document.execCommand('undo', false, '')}
                 className={`${styles.toolbarBtn} p-2 rounded-lg text-gray-600 hover:text-primary`} 
                 title="撤销 (Ctrl+Z)"
               >
                 <i className="fas fa-undo"></i>
               </button>
               <button 
-                onClick={() => document.execCommand('redo', false, null)}
+                onClick={() => document.execCommand('redo', false, '')}
                 className={`${styles.toolbarBtn} p-2 rounded-lg text-gray-600 hover:text-primary`} 
                 title="重做 (Ctrl+Y)"
               >
